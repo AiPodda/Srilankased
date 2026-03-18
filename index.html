@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fuel Finder SL | Ai Podda Project</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: white; }
+        
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .glass-card:hover { transform: translateY(-5px); }
+        
+        .status-available { color: #22c55e; }
+        .status-low { color: #eab308; }
+        .status-out { color: #ef4444; }
+
+        /* Pulse Animation for Live Indicator */
+        .pulse {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 0 rgba(34, 197, 94, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <header class="max-w-4xl mx-auto text-center mb-10 animate__animated animate__fadeInDown">
+        <h1 class="text-4xl font-bold text-blue-400 mb-2">Fuel Finder SL ⛽</h1>
+        <p class="text-slate-400">ශ්‍රී ලංකාවේ සජීවී ඉන්ධන තොරතුරු - Ai Podda නිපදවීමකි</p>
+        
+        <div class="mt-6 flex flex-col md:flex-row gap-2 justify-center">
+            <input type="text" placeholder="ඔබේ නගරය සොයන්න..." class="px-5 py-3 rounded-full bg-slate-800 border border-slate-700 w-full md:w-80 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full font-bold transition">සොයන්න</button>
+        </div>
+    </header>
+
+    <section class="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 mb-10 animate__animated animate__fadeIn">
+        <div class="glass-card p-4 rounded-2xl text-center">
+            <p class="text-xs text-slate-400 uppercase">සක්‍රීය ෂෙඩ්</p>
+            <p class="text-2xl font-bold">142</p>
+        </div>
+        <div class="glass-card p-4 rounded-2xl text-center">
+            <p class="text-xs text-slate-400 uppercase">පෝලිම් දිග (සාමාන්‍ය)</p>
+            <p class="text-2xl font-bold text-yellow-400">1.2 KM</p>
+        </div>
+        <div class="glass-card p-4 rounded-2xl text-center">
+            <p class="text-xs text-slate-400 uppercase">අවසාන Update එක</p>
+            <p class="text-2xl font-bold text-blue-400">දැන්</p>
+        </div>
+        <div class="glass-card p-4 rounded-2xl text-center">
+            <p class="text-xs text-slate-400 uppercase">ඔබේ ඉතිරි කෝටාව</p>
+            <p class="text-2xl font-bold text-green-400">12L</p>
+        </div>
+    </section>
+
+    <main class="max-w-4xl mx-auto grid gap-6">
+        
+        <div class="glass-card p-6 rounded-3xl animate__animated animate__fadeInUp">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h2 class="text-xl font-bold flex items-center gap-2">
+                        Ceypetco - Ella <span class="pulse"></span>
+                    </h2>
+                    <p class="text-sm text-slate-400">📍 බණ්ඩාරවෙල පාර, ඇල්ල</p>
+                </div>
+                <span class="bg-green-500/10 text-green-500 px-3 py-1 rounded-full text-xs font-bold border border-green-500/20">Available</span>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-700">
+                    <p class="text-[10px] text-slate-500">92 Petrol</p>
+                    <p class="font-bold text-green-400">ඔව් ✅</p>
+                </div>
+                <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-700">
+                    <p class="text-[10px] text-slate-500">95 Petrol</p>
+                    <p class="font-bold text-red-400">නැත ❌</p>
+                </div>
+                <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-700">
+                    <p class="text-[10px] text-slate-500">Auto Diesel</p>
+                    <p class="font-bold text-green-400">ඔව් ✅</p>
+                </div>
+                <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-700">
+                    <p class="text-[10px] text-slate-500">Queue Length</p>
+                    <p class="font-bold text-yellow-400">වාහන 15</p>
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4 border-t border-slate-700 pt-4">
+                <div class="text-sm">
+                    <span class="text-slate-400">🕒 ඔබට යාමට ගතවන කාලය: </span>
+                    <span class="font-semibold text-blue-400">විනාඩි 12</span>
+                </div>
+                <div class="flex gap-2 w-full md:w-auto">
+                    <button class="flex-1 bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl text-sm flex items-center justify-center gap-2 transition">
+                        <i data-lucide="phone" class="w-4 h-4"></i> Call
+                    </button>
+                    <button class="flex-1 bg-blue-600 hover:bg-blue-500 px-6 py-2 rounded-xl text-sm flex items-center justify-center gap-2 transition">
+                        <i data-lucide="map-pin" class="w-4 h-4"></i> Get Directions
+                    </button>
+                </div>
+            </div>
+            <p class="mt-4 text-[11px] text-slate-500 italic text-center italic">"මීට විනාඩි 5කට පෙර පාරිභෝගිකයෙකු විසින් තහවුරු කරන ලදී"</p>
+        </div>
+
+        </main>
+
+    <footer class="mt-20 text-center text-slate-500 text-sm pb-10">
+        <p>© 2026 AI PODDA Project. Developed for Sri Lanka 🇱🇰</p>
+    </footer>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>
