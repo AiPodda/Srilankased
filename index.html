@@ -1,235 +1,467 @@
 <!DOCTYPE html>
 <html lang="si">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FuelWise SL | Complete Fuel Station Database</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background: #f1f5f9; }
-        .station-card { transition: 0.3s; border-radius: 2rem; background: #ffffff; border: 1px solid #e2e8f0; }
-        .station-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
-        #map { height: 500px; border-radius: 2rem; z-index: 10; border: 8px solid white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .status-pill { padding: 4px 12px; border-radius: 99px; font-size: 10px; font-weight: 900; text-transform: uppercase; }
-        .ceypetco-theme { border-left: 8px solid #ef4444; }
-        .lioc-theme { border-left: 8px solid #3b82f6; }
-        .sinopec-theme { border-left: 8px solid #10b981; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lanka Fuel Tracker - ලංකා ඉන්ධන සොයන්නා</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #1a56db; --primary-dark: #1e3a8a; --primary-light: #dbeafe;
+      --success: #059669; --success-light: #d1fae5;
+      --warning: #d97706; --warning-light: #fef3c7;
+      --danger: #dc2626; --danger-light: #fee2e2;
+      --orange: #ea580c; --orange-light: #ffedd5;
+      --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
+      --gray-300: #d1d5db; --gray-400: #9ca3af; --gray-500: #6b7280;
+      --gray-700: #374151; --gray-900: #111827; --white: #ffffff;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+      --shadow-md: 0 4px 12px rgba(0,0,0,.10), 0 2px 4px rgba(0,0,0,.06);
+      --shadow-lg: 0 10px 30px rgba(0,0,0,.12), 0 4px 6px rgba(0,0,0,.05);
+      --shadow-xl: 0 20px 60px rgba(0,0,0,.16);
+      --radius: 12px; --radius-sm: 8px; --radius-lg: 16px; --radius-xl: 24px;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', 'Noto Sans Sinhala', sans-serif; background: var(--gray-50); color: var(--gray-900); min-height: 100vh; overflow-x: hidden; }
+    .hero { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 40%, #1a56db 70%, #3b82f6 100%); padding: 0; position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; inset: 0; background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
+    .hero-glow { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.2; }
+    .hero-glow-1 { width: 500px; height: 500px; background: #60a5fa; top: -200px; right: -100px; animation: floatGlow 8s ease-in-out infinite; }
+    .hero-glow-2 { width: 300px; height: 300px; background: #a78bfa; bottom: -100px; left: 10%; animation: floatGlow 10s ease-in-out infinite reverse; }
+    @keyframes floatGlow { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-30px) scale(1.1); } }
+    .hero-nav { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; position: relative; z-index: 10; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .hero-logo { display: flex; align-items: center; gap: 12px; }
+    .hero-logo-icon { width: 44px; height: 44px; background: rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); animation: pulse 3s ease-in-out infinite; }
+    @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(96,165,250,0.4); } 50% { box-shadow: 0 0 0 8px rgba(96,165,250,0); } }
+    .hero-logo-text h1 { font-size: 20px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
+    .hero-logo-text p { font-size: 11px; color: rgba(255,255,255,0.6); font-weight: 500; letter-spacing: 1px; text-transform: uppercase; }
+    .hero-nav-actions { display: flex; gap: 10px; align-items: center; }
+    .btn-nav { display: flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s ease; }
+    .btn-nav-outline { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px); }
+    .btn-nav-outline:hover { background: rgba(255,255,255,0.2); }
+    .btn-nav-solid { background: white; color: var(--primary); }
+    .btn-nav-solid:hover { background: #f0f7ff; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    .hero-body { padding: 48px 24px 56px; position: relative; z-index: 10; text-align: center; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: #bfdbfe; padding: 6px 14px; border-radius: 50px; font-size: 12px; font-weight: 600; margin-bottom: 20px; animation: slideDown 0.6s ease; }
+    .live-dot { width: 7px; height: 7px; background: #4ade80; border-radius: 50%; animation: blink 1.2s ease-in-out infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.7); } }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+    .hero-title { font-size: clamp(32px, 6vw, 56px); font-weight: 900; color: white; line-height: 1.1; letter-spacing: -1px; margin-bottom: 12px; animation: slideUp 0.7s ease; }
+    .hero-title span { background: linear-gradient(90deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    .hero-subtitle { font-size: 16px; color: rgba(255,255,255,0.7); margin-bottom: 8px; font-family: 'Noto Sans Sinhala', sans-serif; animation: slideUp 0.8s ease; }
+    .hero-subtitle-en { font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 40px; animation: slideUp 0.9s ease; }
+    .hero-stats { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; animation: slideUp 1s ease; }
+    .hero-stat { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 14px 20px; text-align: center; min-width: 120px; }
+    .hero-stat-num { font-size: 28px; font-weight: 800; color: white; line-height: 1; }
+    .hero-stat-label { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 4px; font-family: 'Noto Sans Sinhala', sans-serif; font-weight: 500; }
+    .filter-bar { position: sticky; top: 0; z-index: 100; background: white; border-bottom: 1px solid var(--gray-200); box-shadow: var(--shadow-sm); padding: 14px 20px; }
+    .filter-inner { max-width: 1400px; margin: 0 auto; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .search-box { flex: 1; min-width: 200px; position: relative; }
+    .search-box input { width: 100%; padding: 10px 14px 10px 40px; border: 1.5px solid var(--gray-200); border-radius: 10px; font-size: 14px; outline: none; transition: border-color 0.2s; font-family: 'Noto Sans Sinhala', 'Inter', sans-serif; }
+    .search-box input:focus { border-color: var(--primary); }
+    .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--gray-400); font-size: 16px; }
+    .filter-select { padding: 10px 14px; border: 1.5px solid var(--gray-200); border-radius: 10px; font-size: 13px; font-weight: 500; color: var(--gray-700); background: white; cursor: pointer; outline: none; font-family: 'Noto Sans Sinhala', 'Inter', sans-serif; transition: border-color 0.2s; }
+    .filter-select:focus { border-color: var(--primary); }
+    .filter-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chip { padding: 7px 14px; border-radius: 50px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1.5px solid var(--gray-200); background: white; color: var(--gray-600); transition: all 0.2s; white-space: nowrap; font-family: 'Noto Sans Sinhala', 'Inter', sans-serif; }
+    .chip:hover { border-color: var(--primary); color: var(--primary); }
+    .chip.active { background: var(--primary); border-color: var(--primary); color: white; }
+    .btn-location { display: flex; align-items: center; gap: 6px; padding: 10px 16px; background: var(--primary-dark); color: white; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.2s; font-family: 'Noto Sans Sinhala', 'Inter', sans-serif; }
+    .btn-location:hover { background: var(--primary); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+    .btn-qr-scan { display: flex; align-items: center; gap: 6px; padding: 10px 16px; background: #7c3aed; color: white; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.2s; font-family: 'Noto Sans Sinhala', 'Inter', sans-serif; }
+    .btn-qr-scan:hover { background: #6d28d9; transform: translateY(-1px); }
+    .main { max-width: 1400px; margin: 0 auto; padding: 24px 20px; }
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .section-title { font-size: 18px; font-weight: 700; color: var(--gray-900); display: flex; align-items: center; gap: 8px; font-family: 'Noto Sans Sinhala', sans-serif; }
+    .count-badge { background: var(--primary-light); color: var(--primary); font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 50px; }
+    .last-update { font-size: 12px; color: var(--gray-400); display: flex; align-items: center; gap: 6px; }
+    .station-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 16px; }
+    .station-card { background: white; border-radius: var(--radius-lg); border: 1px solid var(--gray-100); box-shadow: var(--shadow-sm); overflow: hidden; transition: all 0.3s ease; animation: cardIn 0.4s ease forwards; opacity: 0; transform: translateY(10px); }
+    @keyframes cardIn { to { opacity: 1; transform: translateY(0); } }
+    .station-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-3px); border-color: var(--gray-200); }
+    .card-header { padding: 16px 18px 12px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .card-company-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase; }
+    .company-colpetco { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+    .company-lanka-ioc { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+    .company-hemas { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+    .company-sinopec { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .company-ceypetco { background: #fdf4ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+    .company-other { background: #f9fafb; color: #374151; border: 1px solid #e5e7eb; }
+    .card-meta { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+    .card-name { font-size: 15px; font-weight: 700; color: var(--gray-900); line-height: 1.3; }
+    .card-address { font-size: 12px; color: var(--gray-500); display: flex; align-items: center; gap: 4px; }
+    .card-distance { font-size: 12px; font-weight: 600; color: var(--primary); display: flex; align-items: center; gap: 4px; }
+    .card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+    .fuel-grid { padding: 0 18px 14px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .fuel-item { background: var(--gray-50); border-radius: 10px; padding: 10px 8px; text-align: center; border: 1.5px solid var(--gray-100); transition: all 0.2s; }
+    .fuel-item.available { background: var(--success-light); border-color: #6ee7b7; }
+    .fuel-item.empty { background: var(--danger-light); border-color: #fca5a5; opacity: 0.7; }
+    .fuel-item.long_queue { background: var(--orange-light); border-color: #fdba74; }
+    .fuel-item.short_queue { background: var(--warning-light); border-color: #fcd34d; }
+    .fuel-item.unknown { background: var(--gray-100); border-color: var(--gray-200); opacity: 0.6; }
+    .fuel-icon { font-size: 16px; margin-bottom: 3px; }
+    .fuel-name { font-size: 10px; font-weight: 700; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px; }
+    .fuel-status-text { font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 3px; }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .status-dot.available { background: var(--success); }
+    .status-dot.empty { background: var(--danger); }
+    .status-dot.long_queue { background: var(--orange); animation: blink 1s infinite; }
+    .status-dot.short_queue { background: var(--warning); }
+    .status-dot.unknown { background: var(--gray-400); }
+    .fuel-status-text.available { color: var(--success); }
+    .fuel-status-text.empty { color: var(--danger); }
+    .fuel-status-text.long_queue { color: var(--orange); }
+    .fuel-status-text.short_queue { color: var(--warning); }
+    .fuel-status-text.unknown { color: var(--gray-400); }
+    .queue-section { padding: 0 18px 12px; }
+    .queue-label { font-size: 11px; font-weight: 600; color: var(--gray-500); margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; }
+    .queue-bar { height: 6px; background: var(--gray-100); border-radius: 3px; overflow: hidden; }
+    .queue-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+    .queue-fill.none { width: 0%; background: var(--success); }
+    .queue-fill.short { width: 30%; background: var(--warning); }
+    .queue-fill.medium { width: 60%; background: var(--orange); }
+    .queue-fill.long { width: 90%; background: var(--danger); animation: queuePulse 1.5s ease-in-out infinite; }
+    @keyframes queuePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+    .card-footer { padding: 12px 18px; border-top: 1px solid var(--gray-100); display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--gray-50); }
+    .card-info-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .card-info-item { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--gray-500); }
+    .card-info-item strong { color: var(--gray-700); font-weight: 600; }
+    .card-actions { display: flex; gap: 6px; }
+    .btn-card { display: flex; align-items: center; gap: 5px; padding: 7px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; font-family: 'Noto Sans Sinhala', 'Inter', sans-serif; }
+    .btn-details { background: var(--primary-light); color: var(--primary); }
+    .btn-details:hover { background: var(--primary); color: white; }
+    .btn-update { background: var(--success-light); color: var(--success); }
+    .btn-update:hover { background: var(--success); color: white; }
+    .btn-qr { background: #f3e8ff; color: #7c3aed; }
+    .btn-qr:hover { background: #7c3aed; color: white; }
+    .btn-map { background: var(--gray-100); color: var(--gray-600); }
+    .btn-map:hover { background: var(--gray-700); color: white; }
+    .update-time { font-size: 11px; color: var(--gray-400); display: flex; align-items: center; gap: 3px; }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.2s ease; }
+    .modal-overlay.show { display: flex; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .modal { background: white; border-radius: var(--radius-xl); box-shadow: var(--shadow-xl); width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    @keyframes modalIn { from { opacity: 0; transform: scale(0.9) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    .modal-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--gray-100); display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; position: sticky; top: 0; background: white; border-radius: var(--radius-xl) var(--radius-xl) 0 0; z-index: 10; }
+    .modal-title { font-size: 18px; font-weight: 700; color: var(--gray-900); }
+    .modal-subtitle { font-size: 13px; color: var(--gray-500); margin-top: 2px; font-family: 'Noto Sans Sinhala', sans-serif; }
+    .btn-close { width: 32px; height: 32px; border-radius: 8px; border: none; background: var(--gray-100); color: var(--gray-500); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; }
+    .btn-close:hover { background: var(--danger-light); color: var(--danger); }
+    .modal-body { padding: 20px 24px 24px; }
+    .detail-section { margin-bottom: 20px; }
+    .detail-section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--gray-400); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+    .detail-section-title::after { content: ''; flex: 1; height: 1px; background: var(--gray-100); }
+    .detail-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--gray-50); border-radius: 10px; margin-bottom: 6px; }
+    .detail-row-icon { font-size: 18px; width: 28px; text-align: center; flex-shrink: 0; }
+    .detail-row-label { font-size: 12px; color: var(--gray-500); width: 100px; flex-shrink: 0; font-family: 'Noto Sans Sinhala', sans-serif; }
+    .detail-row-value { font-size: 14px; font-weight: 600; color: var(--gray-900); flex: 1; }
+    .fuel-detail-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .fuel-detail-card { border-radius: 10px; padding: 14px; border: 1.5px solid var(--gray-100); }
+    .fuel-detail-card.available { background: var(--success-light); border-color: #6ee7b7; }
+    .fuel-detail-card.empty { background: var(--danger-light); border-color: #fca5a5; }
+    .fuel-detail-card.long_queue { background: var(--orange-light); border-color: #fdba74; }
+    .fuel-detail-card.short_queue { background: var(--warning-light); border-color: #fcd34d; }
+    .fuel-detail-title { font-size: 13px; font-weight: 700; color: var(--gray-800); margin-bottom: 4px; }
+    .fuel-detail-price { font-size: 18px; font-weight: 800; color: var(--gray-900); margin-bottom: 6px; }
+    .fuel-detail-status { font-size: 12px; font-weight: 700; }
+    .fuel-detail-status.available { color: var(--success); }
+    .fuel-detail-status.empty { color: var(--danger); }
+    .fuel-detail-status.long_queue { color: var(--orange); }
+    .fuel-detail-status.short_queue { color: var(--warning); }
+    .qr-container { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 20px; background: var(--gray-50); border-radius: var(--radius-lg); border: 1px solid var(--gray-100); }
+    .qr-code-wrapper { background: white; padding: 16px; border-radius: 12px; box-shadow: var(--shadow-sm); border: 2px solid var(--gray-100); }
+    .qr-info { text-align: center; }
+    .qr-info h4 { font-size: 15px; font-weight: 700; color: var(--gray-900); margin-bottom: 4px; font-family: 'Noto Sans Sinhala', sans-serif; }
+    .qr-info p { font-size: 12px; color: var(--gray-500); font-family: 'Noto Sans Sinhala', sans-serif; }
+    .qr-govt-badge { display: flex; align-items: center; gap: 8px; background: #1e3a8a; color: white; padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; }
+    .btn-download-qr { display: flex; align-items: center; gap: 6px; padding: 10px 20px; background: #7c3aed; color: white; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: 'Noto Sans Sinhala', 'Inter', sans-serif; }
+    .btn-download-qr:hover { background: #6d28d9; transform: translateY(-1px); }
+    .update-form { display: flex; flex-direction: column; gap: 14px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--gray-700); margin-bottom: 6px; font-family: 'Noto Sans Sinhala', sans-serif; }
+    .form-control { width: 100%; padding: 10px 14px; border: 1.5px solid var(--gray-200); border-radius: 10px; font-size: 14px; outline: none; transition: border-color 0.2s; font-family: 'Noto Sans Sinhala', 'Inter', sans-serif; background: white; }
+    .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,86,219,0.1); }
+    .status-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .status-option { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border: 1.5px solid var(--gray-200); border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; font-family: 'Noto Sans Sinhala', sans-serif; }
+    .status-option:hover { border-color: var(--gray-400); }
+    .status-option.selected-available { border-color: var(--success); background: var(--success-light); color: var(--success); }
+    .status-option.selected-empty { border-color: var(--danger); background: var(--danger-light); color: var(--danger); }
+    .status-option.selected-short_queue { border-color: var(--warning); background: var(--warning-light); color: var(--warning); }
+    .status-option.selected-long_queue { border-color: var(--orange); background: var(--orange-light); color: var(--orange); }
+    .btn-submit { padding: 12px 24px; background: var(--primary); color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Noto Sans Sinhala', 'Inter', sans-serif; }
+    .btn-submit:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+    .scanner-container { position: relative; }
+    #qr-reader { width: 100%; border-radius: 12px; overflow: hidden; }
+    .scanner-result { display: none; padding: 16px; background: var(--success-light); border: 1.5px solid #6ee7b7; border-radius: 10px; margin-top: 12px; }
+    .scanner-result.show { display: block; }
+    .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+    .toast { display: flex; align-items: center; gap: 10px; padding: 14px 18px; background: var(--gray-900); color: white; border-radius: 12px; font-size: 13px; font-weight: 600; box-shadow: var(--shadow-lg); animation: toastIn 0.3s ease; font-family: 'Noto Sans Sinhala', 'Inter', sans-serif; max-width: 320px; }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+    .toast.success { background: var(--success); }
+    .toast.error { background: var(--danger); }
+    .toast.info { background: var(--primary); }
+    .no-results { text-align: center; padding: 60px 20px; color: var(--gray-500); }
+    .no-results-icon { font-size: 48px; margin-bottom: 12px; }
+    .no-results h3 { font-size: 18px; font-weight: 700; color: var(--gray-700); font-family: 'Noto Sans Sinhala', sans-serif; }
+    .no-results p { font-size: 14px; margin-top: 6px; font-family: 'Noto Sans Sinhala', sans-serif; }
+    .footer { background: var(--gray-900); color: rgba(255,255,255,0.6); text-align: center; padding: 24px 20px; margin-top: 40px; }
+    .footer p { font-size: 13px; line-height: 1.8; font-family: 'Noto Sans Sinhala', sans-serif; }
+    .footer strong { color: white; }
+    @media (max-width: 640px) { .station-grid { grid-template-columns: 1fr; } .hero-stats { flex-direction: row; gap: 8px; } .hero-stat { min-width: 100px; padding: 10px 14px; } .hero-stat-num { font-size: 22px; } .filter-inner { gap: 8px; } .fuel-grid { grid-template-columns: repeat(3, 1fr); } .card-actions { flex-wrap: wrap; } }
+    .admin-modal .modal { max-width: 700px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+    .pumps-grid { display: flex; gap: 4px; flex-wrap: wrap; }
+    .pump-icon { width: 20px; height: 20px; background: var(--primary-light); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+    .pump-icon.active { background: var(--success-light); }
+    .tabs { display: flex; gap: 4px; background: var(--gray-100); border-radius: 10px; padding: 4px; margin-bottom: 16px; }
+    .tab { flex: 1; text-align: center; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--gray-500); transition: all 0.2s; border: none; background: none; font-family: 'Noto Sans Sinhala', 'Inter', sans-serif; }
+    .tab.active { background: white; color: var(--primary); box-shadow: var(--shadow-sm); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+  </style>
 </head>
 <body>
 
-    <nav class="sticky top-0 z-[1000] bg-white border-b border-slate-200 px-6 py-4 shadow-sm">
-        <div class="max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-3">
-                <div class="bg-red-600 p-3 rounded-2xl text-white shadow-lg shadow-red-200">
-                    <i data-lucide="fuel" class="w-7 h-7"></i>
-                </div>
-                <div>
-                    <h1 class="text-2xl font-black tracking-tighter text-slate-900">FUEL<span class="text-red-600">WISE</span> SL</h1>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sri Lanka's Complete Station Database</p>
-                </div>
-            </div>
-            
-            <div class="flex items-center gap-4 w-full md:w-auto">
-                <div class="relative flex-1 md:w-96">
-                    <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5"></i>
-                    <input type="text" id="searchInput" placeholder="සෙඩ් එකේ නම, නගරය හෝ දුරකථනය..." 
-                        class="w-full pl-12 pr-4 py-3 bg-slate-100 rounded-2xl border-none focus:ring-2 focus:ring-red-500 outline-none font-medium">
-                </div>
-                <button onclick="openScanner()" class="bg-slate-900 text-white p-3 rounded-2xl hover:bg-red-600 transition">
-                    <i data-lucide="qr-code"></i>
-                </button>
-            </div>
-        </div>
-    </nav>
-
-    <main class="max-w-[1600px] mx-auto px-6 py-8">
-        
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-                <p class="text-xs font-bold text-slate-400 uppercase mb-2">දිස්ත්‍රික්කය</p>
-                <select id="districtFilter" class="w-full font-bold text-slate-800 outline-none bg-transparent cursor-pointer">
-                    <option value="">සියලුම දිස්ත්‍රික්ක (25)</option>
-                </select>
-            </div>
-            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-                <p class="text-xs font-bold text-slate-400 uppercase mb-2">සමාගම</p>
-                <select id="companyFilter" class="w-full font-bold text-slate-800 outline-none bg-transparent cursor-pointer">
-                    <option value="">සියලුම සමාගම්</option>
-                    <option value="Ceypetco">Ceypetco</option>
-                    <option value="LIOC">Lanka IOC</option>
-                    <option value="Sinopec">Sinopec</option>
-                </select>
-            </div>
-            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex justify-between items-center">
-                <div>
-                    <p class="text-xs font-bold text-slate-400 uppercase">සමස්ත පිරවුම්හල්</p>
-                    <h3 id="totalStations" class="text-2xl font-black text-slate-900">0</h3>
-                </div>
-                <i data-lucide="layers" class="text-slate-200 w-10 h-10"></i>
-            </div>
-            <div class="bg-red-600 p-6 rounded-[2rem] shadow-lg text-white flex justify-between items-center">
-                <div>
-                    <p class="text-xs font-bold opacity-80 uppercase">දැනට තෙල් පවතින</p>
-                    <h3 id="availableStations" class="text-2xl font-black">0</h3>
-                </div>
-                <i data-lucide="check-circle" class="opacity-30 w-10 h-10"></i>
-            </div>
-        </div>
-
-        <div id="map" class="mb-12"></div>
-
-        <div id="grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            </div>
-    </main>
-
-    <div id="qrModal" class="fixed inset-0 bg-slate-900/80 z-[2000] hidden flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-lg rounded-[3rem] p-8 relative">
-            <button onclick="closeScanner()" class="absolute right-6 top-6 text-slate-400 hover:text-red-600"><i data-lucide="x"></i></button>
-            <h2 class="text-2xl font-black mb-6">Government QR Scanner</h2>
-            <div id="reader" class="overflow-hidden rounded-3xl bg-slate-100"></div>
-            <div id="qrDetails" class="mt-6 p-6 bg-green-50 rounded-3xl hidden border border-green-100">
-                <p class="text-xs font-bold text-green-600 uppercase mb-2">QR Verified Details</p>
-                <div id="qrContent" class="text-sm font-bold text-slate-800 space-y-2"></div>
-            </div>
-        </div>
+<header class="hero">
+  <div class="hero-glow hero-glow-1"></div>
+  <div class="hero-glow hero-glow-2"></div>
+  <nav class="hero-nav">
+    <div class="hero-logo">
+      <div class="hero-logo-icon">⛽</div>
+      <div class="hero-logo-text">
+        <h1>Lanka Fuel Tracker</h1>
+        <p>Real-time · All Sri Lanka</p>
+      </div>
     </div>
+    <div class="hero-nav-actions">
+      <button class="btn-nav btn-nav-outline" onclick="openQRScanner()">📷 QR ස්කෑන්</button>
+      <button class="btn-nav btn-nav-solid" onclick="openAddStation()">+ සෙඩ් එකක් දාන්න</button>
+    </div>
+  </nav>
+  <div class="hero-body">
+    <div class="hero-badge"><div class="live-dot"></div>Live Updates · සජීවී දත්ත</div>
+    <h2 class="hero-title">ලංකා <span>ඉන්ධන</span> සොයන්නා</h2>
+    <p class="hero-subtitle">ඉන්ධන ලැබෙනවාද? දැනෙව් දැනන්නම්!</p>
+    <p class="hero-subtitle-en">Check fuel availability at any station across Sri Lanka</p>
+    <div class="hero-stats" id="heroStats">
+      <div class="hero-stat"><div class="hero-stat-num" id="statTotal">0</div><div class="hero-stat-label">සෙඩ් ගණන</div></div>
+      <div class="hero-stat"><div class="hero-stat-num" id="statAvailable" style="color:#4ade80">0</div><div class="hero-stat-label">ලැබෙනවා</div></div>
+      <div class="hero-stat"><div class="hero-stat-num" id="statQueue" style="color:#fb923c">0</div><div class="hero-stat-label">පෝලිම</div></div>
+      <div class="hero-stat"><div class="hero-stat-num" id="statEmpty" style="color:#f87171">0</div><div class="hero-stat-label">නැහැ</div></div>
+    </div>
+  </div>
+</header>
 
-    <script>
-        // දත්ත පද්ධතිය - සියලුම දිස්ත්‍රික්ක වල සෙඩ් ඇතුළත් කර ඇත
-        const fuelData = [
-            { name: "Ceypetco - Colombo Fort", district: "Colombo", city: "Fort", company: "Ceypetco", phone: "0112323231", pumps: 12, stock: true, queue: "50m", lat: 6.9344, lng: 79.8428, address: "Janadhipathi Mawatha, Colombo 01" },
-            { name: "Lanka IOC - Kollupitiya", district: "Colombo", city: "Kollupitiya", company: "LIOC", phone: "0112301122", pumps: 6, stock: true, queue: "No Queue", lat: 6.9119, lng: 79.8506, address: "Galle Road, Colombo 03" },
-            { name: "Sinopec Energy - Nawala", district: "Colombo", city: "Nawala", company: "Sinopec", phone: "0112805566", pumps: 8, stock: true, queue: "10m", lat: 6.9030, lng: 79.8920, address: "Nawala Road, Rajagiriya" },
-            { name: "Ceypetco - Kandy City", district: "Kandy", city: "Kandy", company: "Ceypetco", phone: "0812234455", pumps: 10, stock: false, queue: "N/A", lat: 7.2906, lng: 80.6337, address: "Dalada Veediya, Kandy" },
-            { name: "LIOC - Galle Fort", district: "Galle", city: "Galle", company: "LIOC", phone: "0912234567", pumps: 4, stock: true, queue: "100m", lat: 6.0329, lng: 80.2168, address: "Main Street, Galle" },
-            { name: "Ceypetco - Anuradhapura", district: "Anuradhapura", city: "Anuradhapura", company: "Ceypetco", phone: "0252222222", pumps: 8, stock: true, queue: "10m", lat: 8.3114, lng: 80.4037, address: "New Town, Anuradhapura" },
-            { name: "LIOC - Kurunegala", district: "Kurunegala", city: "Kurunegala", company: "LIOC", phone: "0372223456", pumps: 14, stock: true, queue: "150m", lat: 7.4863, lng: 80.3623, address: "Colombo Road, Kurunegala" },
-            { name: "Ceypetco - Jaffna", district: "Jaffna", city: "Jaffna", company: "Ceypetco", phone: "0212222222", pumps: 5, stock: true, queue: "No Queue", lat: 9.6615, lng: 80.0255, address: "Hospital Road, Jaffna" },
-            { name: "Sinopec - Matara", district: "Matara", city: "Matara Town", company: "Sinopec", phone: "0412223344", pumps: 6, stock: true, queue: "20m", lat: 5.9500, lng: 80.5333, address: "Beach Road, Matara" },
-            { name: "Ceypetco - Ratnapura", district: "Ratnapura", city: "Ratnapura", company: "Ceypetco", phone: "0452223344", pumps: 7, stock: false, queue: "N/A", lat: 6.6745, lng: 80.4010, address: "Main Street, Ratnapura" },
-            { name: "LIOC - Badulla", district: "Badulla", city: "Badulla", company: "LIOC", phone: "0552223344", pumps: 5, stock: true, queue: "40m", lat: 6.9934, lng: 81.0550, address: "Passara Road, Badulla" },
-            { name: "Ceypetco - Gampaha", district: "Gampaha", city: "Gampaha", company: "Ceypetco", phone: "0332223344", pumps: 12, stock: true, queue: "100m", lat: 7.0917, lng: 79.9950, address: "Gampaha Town Center" }
-            // මෙලෙස ලංකාවේ පවතින සෙඩ් 1600 ම එකවර ඇතුළත් කළ හැක
-        ];
+<div class="filter-bar">
+  <div class="filter-inner">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="search" id="searchInput" placeholder="සෙඩ් නම, ලිපිනය, දිස්ත්‍රික්කය..." oninput="filterStations()">
+    </div>
+    <select class="filter-select" id="districtFilter" onchange="filterStations()">
+      <option value="">🗺️ සියලු දිස්ත්‍රික්ක</option>
+      <option>කොළඹ | Colombo</option><option>ගම්පහ | Gampaha</option><option>කළුතර | Kalutara</option>
+      <option>මහනුවර | Kandy</option><option>මාතලේ | Matale</option><option>නුවරඑළිය | Nuwara Eliya</option>
+      <option>ගාල්ල | Galle</option><option>මාතර | Matara</option><option>හම්බන්තොට | Hambantota</option>
+      <option>යාපනය | Jaffna</option><option>කිළිනොච්චි | Kilinochchi</option><option>මන්නාරම | Mannar</option>
+      <option>වවුනියාව | Vavuniya</option><option>ත්‍රිකුණාමල | Trincomalee</option><option>මඩකළපුව | Batticaloa</option>
+      <option>අම්පාර | Ampara</option><option>කුරුණෑගල | Kurunegala</option><option>පුත්තලම | Puttalam</option>
+      <option>අනුරාධපුර | Anuradhapura</option><option>පොළොන්නරුව | Polonnaruwa</option>
+      <option>බදුල්ල | Badulla</option><option>මොනරාගල | Monaragala</option>
+      <option>රත්නපුර | Ratnapura</option><option>කෑගල්ල | Kegalle</option>
+    </select>
+    <select class="filter-select" id="companyFilter" onchange="filterStations()">
+      <option value="">🏢 සියලු සමාගම්</option>
+      <option>Colpetco / Ceypetco</option><option>Lanka IOC</option><option>Hemas</option>
+      <option>Sinopec</option><option>Laugfs</option><option>Other</option>
+    </select>
+    <div class="filter-chips">
+      <div class="chip active" onclick="setFuelFilter('all',this)">⛽ සියල්ල</div>
+      <div class="chip" onclick="setFuelFilter('petrol',this)">🟡 පෙට්‍රල්</div>
+      <div class="chip" onclick="setFuelFilter('diesel',this)">⚫ ඩීසල්</div>
+      <div class="chip" onclick="setFuelFilter('kerosene',this)">🔵 කිරොසීන්</div>
+    </div>
+    <button class="btn-location" onclick="findNearest()">📍 ළඟම</button>
+    <button class="btn-qr-scan" onclick="openQRScanner()">📷 QR Scan</button>
+  </div>
+</div>
 
-        const districts = ["Ampara","Anuradhapura","Badulla","Batticaloa","Colombo","Galle","Gampaha","Hambantota","Jaffna","Kalutara","Kandy","Kegalle","Kilinochchi","Kurunegala","Mannar","Matale","Matara","Monaragala","Mullaitivu","Nuwara Eliya","Polonnaruwa","Puttalam","Ratnapura","Trincomalee","Vavuniya"];
+<main class="main">
+  <div class="section-header">
+    <div class="section-title">⛽ ඉන්ධන පොම්ප <span class="count-badge" id="resultCount">0</span></div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="last-update"><div class="live-dot"></div><span id="lastUpdateTime">යාවත්කාලීන වෙමින්...</span></div>
+      <select class="filter-select" id="sortFilter" onchange="filterStations()" style="padding:7px 12px;font-size:12px;">
+        <option value="default">⚙️ Sort</option><option value="nearest">📍 ළඟම</option>
+        <option value="available">✅ Available</option><option value="company">🏢 සමාගම</option>
+        <option value="district">🗺️ දිස්ත්‍රික්කය</option>
+      </select>
+    </div>
+  </div>
+  <div class="station-grid" id="stationGrid"></div>
+  <div id="noResults" style="display:none">
+    <div class="no-results"><div class="no-results-icon">🔍</div><h3>ප්‍රතිඵල හමු නොවීය</h3><p>වෙනත් filter එකක් උත්සාහ කරන්න</p></div>
+  </div>
+</main>
 
-        let map, markers = [], html5QrCode;
+<footer class="footer">
+  <p><strong>Lanka Fuel Tracker</strong> | ශ්‍රී ලංකාවේ සෑම ඉන්ධන පොම්ප සෙඩ් එකම<br>
+  Data crowdsourced · Live updates every 60 seconds · Built for Sri Lanka 🇱🇰<br>
+  <small>© 2024 Lanka Fuel Tracker · ලංකා ඉන්ධන සොයන්නා</small></p>
+</footer>
 
-        function init() {
-            lucide.createIcons();
-            initMap();
-            loadFilters();
-            render(fuelData);
+<!-- STATION DETAIL MODAL -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><div class="modal-title" id="detailName">-</div><div class="modal-subtitle" id="detailDistrict">-</div></div>
+      <button class="btn-close" onclick="closeModal('detailModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('info')">ℹ️ තොරතුරු</button>
+        <button class="tab" onclick="switchTab('fuel')">⛽ ඉන්ධන</button>
+        <button class="tab" onclick="switchTab('qr')">📱 QR Code</button>
+        <button class="tab" onclick="switchTab('update')">✏️ Update</button>
+      </div>
+      <div id="tabInfo" class="tab-panel active">
+        <div class="detail-section"><div class="detail-section-title">📋 මූලික තොරතුරු</div><div id="detailInfoRows"></div></div>
+        <div class="detail-section"><div class="detail-section-title">⛽ පොම්ප</div><div id="detailPumps" class="pumps-grid"></div></div>
+      </div>
+      <div id="tabFuel" class="tab-panel">
+        <div class="detail-section"><div class="detail-section-title">⛽ ඉන්ධන තත්ත්වය</div><div id="detailFuelGrid" class="fuel-detail-grid"></div></div>
+        <div class="detail-section"><div class="detail-section-title">🚗 පෝලිම</div><div id="detailQueueInfo"></div></div>
+      </div>
+      <div id="tabQr" class="tab-panel">
+        <div class="qr-container">
+          <div class="qr-govt-badge">🇱🇰 රජයේ ඉන්ධන QR Code · Government Fuel QR</div>
+          <div class="qr-code-wrapper"><div id="detailQRCode"></div></div>
+          <div class="qr-info"><h4 id="qrStationName">-</h4><p id="qrStationInfo">-</p></div>
+          <button class="btn-download-qr" onclick="downloadQR()">⬇️ QR Code Download කරන්න</button>
+        </div>
+        <div style="margin-top:12px;padding:12px;background:var(--gray-50);border-radius:10px;font-size:12px;color:var(--gray-500);line-height:1.7;font-family:'Noto Sans Sinhala',sans-serif;">
+          ⚠️ <strong>රජයේ QR ක්‍රමය:</strong> මෙම QR code scan කළ විට සෙඩ් එකේ සියලු තොරතුරු, ඉන්ධන මිල, සහ Real-time status දකිනු ලැබේ.
+        </div>
+      </div>
+      <div id="tabUpdate" class="tab-panel">
+        <div class="update-form">
+          <div style="padding:12px;background:var(--warning-light);border-radius:10px;font-size:13px;color:var(--warning);font-family:'Noto Sans Sinhala',sans-serif;font-weight:600;">⚠️ සෙඩ් staff පමණක් update කරන්න.</div>
+          <div class="form-group"><label>⛽ Petrol (92/95) තත්ත්වය</label>
+            <div class="status-options" id="petrolStatusOptions">
+              <div class="status-option" onclick="selectStatus('petrol','available',this)">✅ ලැබෙනවා</div>
+              <div class="status-option" onclick="selectStatus('petrol','short_queue',this)">🟡 කෙටි පෝලිම</div>
+              <div class="status-option" onclick="selectStatus('petrol','long_queue',this)">🟠 දිගු පෝලිම</div>
+              <div class="status-option" onclick="selectStatus('petrol','empty',this)">❌ නැහැ</div>
+            </div>
+          </div>
+          <div class="form-group"><label>⚫ Diesel තත්ත්වය</label>
+            <div class="status-options" id="dieselStatusOptions">
+              <div class="status-option" onclick="selectStatus('diesel','available',this)">✅ ලැබෙනවා</div>
+              <div class="status-option" onclick="selectStatus('diesel','short_queue',this)">🟡 කෙටි පෝලිම</div>
+              <div class="status-option" onclick="selectStatus('diesel','long_queue',this)">🟠 දිගු පෝලිම</div>
+              <div class="status-option" onclick="selectStatus('diesel','empty',this)">❌ නැහැ</div>
+            </div>
+          </div>
+          <div class="form-group"><label>🔵 Kerosene තත්ත්වය</label>
+            <div class="status-options" id="keroseneStatusOptions">
+              <div class="status-option" onclick="selectStatus('kerosene','available',this)">✅ ලැබෙනවා</div>
+              <div class="status-option" onclick="selectStatus('kerosene','short_queue',this)">🟡 කෙටි පෝලිම</div>
+              <div class="status-option" onclick="selectStatus('kerosene','long_queue',this)">🟠 දිගු පෝලිම</div>
+              <div class="status-option" onclick="selectStatus('kerosene','empty',this)">❌ නැහැ</div>
+            </div>
+          </div>
+          <div class="form-group"><label>👤 ඔබේ නම (Optional)</label><input class="form-control" id="updaterName" type="text" placeholder="Staff name..."></div>
+          <button class="btn-submit" onclick="submitUpdate()">✅ Update කරන්න</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-            document.getElementById('searchInput').addEventListener('input', applyFilters);
-            document.getElementById('districtFilter').addEventListener('change', applyFilters);
-            document.getElementById('companyFilter').addEventListener('change', applyFilters);
-        }
+<!-- QR SCANNER MODAL -->
+<div class="modal-overlay" id="scannerModal">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header">
+      <div><div class="modal-title">📷 QR Code Scan කරන්න</div><div class="modal-subtitle">රජයේ QR හෝ Lanka Fuel Tracker QR scan කරන්න</div></div>
+      <button class="btn-close" onclick="closeScanner()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="qr-reader" style="width:100%"></div>
+      <div class="scanner-result" id="scannerResult"><div id="scannerResultContent"></div></div>
+      <div style="margin-top:12px;padding:12px;background:var(--gray-50);border-radius:10px;font-size:12px;color:var(--gray-500);font-family:'Noto Sans Sinhala',sans-serif;">📱 Camera permission ලබා දෙන්න.</div>
+    </div>
+  </div>
+</div>
 
-        function initMap() {
-            map = L.map('map', { zoomControl: false }).setView([7.8731, 80.7718], 8);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
-        }
+<!-- ADD STATION MODAL -->
+<div class="modal-overlay admin-modal" id="addStationModal">
+  <div class="modal" style="max-width:650px;">
+    <div class="modal-header">
+      <div><div class="modal-title">➕ නව ඉන්ධන සෙඩ් එකක් දාන්න</div><div class="modal-subtitle">Add a new fuel station</div></div>
+      <button class="btn-close" onclick="closeModal('addStationModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="update-form">
+        <div class="form-row">
+          <div class="form-group"><label>🏪 සෙඩ් නම *</label><input class="form-control" id="newName" placeholder="Colpetco - Nugegoda"></div>
+          <div class="form-group"><label>🏢 සමාගම *</label>
+            <select class="form-control" id="newCompany">
+              <option>Colpetco / Ceypetco</option><option>Lanka IOC</option><option>Hemas</option><option>Sinopec</option><option>Laugfs</option><option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>🗺️ දිස්ත්‍රික්කය *</label>
+            <select class="form-control" id="newDistrict">
+              <option>Colombo</option><option>Gampaha</option><option>Kalutara</option><option>Kandy</option><option>Matale</option><option>Nuwara Eliya</option>
+              <option>Galle</option><option>Matara</option><option>Hambantota</option><option>Jaffna</option><option>Kilinochchi</option><option>Mannar</option>
+              <option>Vavuniya</option><option>Trincomalee</option><option>Batticaloa</option><option>Ampara</option><option>Kurunegala</option><option>Puttalam</option>
+              <option>Anuradhapura</option><option>Polonnaruwa</option><option>Badulla</option><option>Monaragala</option><option>Ratnapura</option><option>Kegalle</option>
+            </select>
+          </div>
+          <div class="form-group"><label>📞 දුරකතන අංකය *</label><input class="form-control" id="newPhone" type="tel" placeholder="011-XXXXXXX"></div>
+        </div>
+        <div class="form-group"><label>📍 ලිපිනය *</label><input class="form-control" id="newAddress" placeholder="No. 123, Main St, City"></div>
+        <div class="form-row">
+          <div class="form-group"><label>🌐 Latitude</label><input class="form-control" id="newLat" type="number" step="0.00001" placeholder="6.9271"></div>
+          <div class="form-group"><label>🌐 Longitude</label><input class="form-control" id="newLng" type="number" step="0.00001" placeholder="79.8612"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>⛽ Petrol</label>
+            <select class="form-control" id="newPetrol"><option value="available">✅ Available</option><option value="short_queue">🟡 Short Queue</option><option value="long_queue">🟠 Long Queue</option><option value="empty">❌ Empty</option></select>
+          </div>
+          <div class="form-group"><label>⚫ Diesel</label>
+            <select class="form-control" id="newDiesel"><option value="available">✅ Available</option><option value="short_queue">🟡 Short Queue</option><option value="long_queue">🟠 Long Queue</option><option value="empty">❌ Empty</option></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>🔵 Kerosene</label>
+            <select class="form-control" id="newKerosene"><option value="available">✅ Available</option><option value="empty">❌ Empty</option><option value="short_queue">🟡 Short Queue</option></select>
+          </div>
+          <div class="form-group"><label>⛽ Pump ගණන</label><input class="form-control" id="newPumps" type="number" min="1" max="30" placeholder="4"></div>
+        </div>
+        <button class="btn-submit" onclick="addStation()">➕ සෙඩ් එක දාන්න</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-        function loadFilters() {
-            const distSelect = document.getElementById('districtFilter');
-            districts.sort().forEach(d => distSelect.innerHTML += `<option value="${d}">${d}</option>`);
-        }
+<div class="toast-container" id="toastContainer"></div>
 
-        function applyFilters() {
-            const search = document.getElementById('searchInput').value.toLowerCase();
-            const dist = document.getElementById('districtFilter').value;
-            const comp = document.getElementById('companyFilter').value;
+<script>
+const FUEL_PRICES = { petrol92: 317, petrol95: 338, diesel: 278, kerosene: 182 };
+const QUEUE_TEXTS = {
+  none:   { si: 'පෝලිමක් නැහැ',   en: 'No Queue',    meters: 0 },
+  short:  { si: 'කෙටි පෝලිමක්',   en: 'Short Queue', meters: 200 },
+  medium: { si: 'මධ්‍යම පෝලිමක්', en: 'Medium Queue', meters: 500 },
+  long:   { si: 'දිගු පෝලිමක්',   en: 'Long Queue',  meters: 1200 }
+};
+const STATUS_LABELS = {
+  available:   { si: 'ලැබෙනවා',  en: 'Available',   icon: '✅' },
+  empty:       { si: **...**
 
-            const filtered = fuelData.filter(s => {
-                return (s.name.toLowerCase().includes(search) || s.city.toLowerCase().includes(search)) &&
-                       (dist === "" || s.district === dist) &&
-                       (comp === "" || s.company === comp);
-            });
-            render(filtered);
-        }
-
-        function render(data) {
-            const grid = document.getElementById('grid');
-            grid.innerHTML = "";
-            document.getElementById('totalStations').innerText = fuelData.length;
-            document.getElementById('availableStations').innerText = data.filter(s => s.stock).length;
-
-            markers.forEach(m => map.removeLayer(m));
-            markers = [];
-
-            data.forEach(s => {
-                const markerIcon = L.divIcon({
-                    className: 'custom-icon',
-                    html: `<div style="background:${s.company === 'Ceypetco' ? '#ef4444' : '#3b82f6'}; width:12px; height:12px; border:3px solid white; border-radius:50%; shadow:0 5px 10px rgba(0,0,0,0.3);"></div>`
-                });
-                const marker = L.marker([s.lat, s.lng], { icon: markerIcon }).addTo(map).bindPopup(`<b>${s.name}</b>`);
-                markers.push(marker);
-
-                grid.innerHTML += `
-                    <div class="station-card p-8 ${s.company.toLowerCase()}-theme relative">
-                        <div class="flex justify-between items-start mb-6">
-                            <div>
-                                <h3 class="font-black text-slate-800 leading-tight text-lg">${s.name}</h3>
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">${s.company} | ${s.city}</p>
-                            </div>
-                            <span class="status-pill ${s.stock ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
-                                ${s.stock ? 'Stock' : 'Out'}
-                            </span>
-                        </div>
-                        
-                        <div class="space-y-4 mb-8">
-                            <div class="flex items-center gap-3 text-xs font-bold text-slate-500">
-                                <i data-lucide="map-pin" class="w-4 h-4 text-red-500"></i> ${s.address}
-                            </div>
-                            <div class="flex items-center gap-3 text-xs font-bold text-slate-500">
-                                <i data-lucide="phone" class="w-4 h-4 text-blue-500"></i> ${s.phone}
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="bg-slate-50 p-4 rounded-2xl">
-                                    <p class="text-[9px] font-black text-slate-400 uppercase">Pumps</p>
-                                    <p class="text-sm font-black text-slate-800">${s.pumps}</p>
-                                </div>
-                                <div class="bg-slate-50 p-4 rounded-2xl">
-                                    <p class="text-[9px] font-black text-slate-400 uppercase">Queue</p>
-                                    <p class="text-sm font-black text-orange-600">${s.queue}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="flex gap-2">
-                            <button onclick="map.setView([${s.lat}, ${s.lng}], 16); window.scrollTo({top: 400, behavior: 'smooth'});" class="flex-1 bg-slate-900 text-white py-4 rounded-2xl text-[10px] font-black uppercase hover:bg-red-600 transition">View Map</button>
-                            <a href="tel:${s.phone}" class="bg-slate-100 p-4 rounded-2xl text-slate-600 hover:bg-slate-200 transition"><i data-lucide="phone-call" class="w-4 h-4"></i></a>
-                        </div>
-                    </div>
-                `;
-            });
-            lucide.createIcons();
-        }
-
-        // QR System
-        function openScanner() {
-            document.getElementById('qrModal').classList.remove('hidden');
-            html5QrCode = new Html5Qrcode("reader");
-            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (decodedText) => {
-                document.getElementById('qrDetails').classList.remove('hidden');
-                document.getElementById('qrContent').innerHTML = `Vehicle: WP-ABC 1234<br>Quota: 20L<br>Balance: 15L<br>Last Filled: ${new Date().toLocaleDateString()}`;
-            });
-        }
-
-        function closeScanner() {
-            document.getElementById('qrModal').classList.add('hidden');
-            if (html5QrCode) html5QrCode.stop();
-        }
-
-        window.onload = init;
-    </script>
-</body>
-</html>
+_This response is too long to display in full._
